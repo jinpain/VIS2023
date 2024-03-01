@@ -1,0 +1,68 @@
+﻿<div class="modal fade" id="printCertificateModal" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Предварительный просмотр документа</h1>
+                    <div class="px-2">
+                        <button class="btn btn-sm btn-success bi bi-printer-fill" onclick="callPrint('certificat')" />
+                    </div>
+                    <button class="btn btn-sm btn-primary bi bi-file-earmark-arrow-down-fill" onclick="htmlToDoc('certificat', '@($"{Patient.Lastname}_{Patient.Firstname}_{Patient.Surname}_№{Patient.MedicalHistoryNumber}")')" />
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-primary" data-bs-target="#patientModal" data-bs-toggle="modal">Открыть карточку пациента</button>
+                    <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+            <div class="modal-body" id="certificat">
+                <div class="content" style="max-width:700px">
+                    <strong>ФИО пациента: </strong>
+                    @($"{Patient.Lastname} {Patient.Firstname} {Patient.Surname}")
+                    <br />
+                    <strong>№ истории болезни: </strong>
+                    @Patient.MedicalHistoryNumber
+                    <br />
+                    <strong>Дата и время смерти: </strong>
+                    @DateTimeExtension.ToDateTimeFormatStringOrEmpty(Patient.DateDeath, "dd.MM.yyyy HH:mm")
+                    <br />
+                    <strong>Вскрытие: </strong>
+                    @if (Patient.AutopsyType == AutopsyType.Нет)
+                    {
+                        <span>Без вскрытия</span>
+                    }
+                    else
+                    {
+                        @Patient.AutopsyType
+                    }
+                    <br />
+                    <strong>Отделение: </strong>
+                    @Patient.MainDepartmentName
+                    <br />
+                    <strong>Отделение по разноске: </strong>
+                    @Patient.DepartmentName
+                    <br />
+                    <hr />
+                    <strong>Дата проверки: </strong>
+                    @if (Patient.Report.DateTime != null)
+                        @Patient.Report.DateTime.Value.ToShortDateString()
+
+                    <br />
+                    <strong>Проверяющий: </strong>
+                    @Patient.Report.Inspector
+                    <br />
+                    <strong>Отчет о проверке: </strong>
+                    <br />
+                    <div contenteditable="true" onbeforeinput="return false">
+                        @Patient.Report.Note
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code 
+{
+    [Parameter]
+    public Patient Patient { get; set; }
+}

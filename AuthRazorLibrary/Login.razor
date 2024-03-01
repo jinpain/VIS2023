@@ -1,0 +1,123 @@
+﻿@using CustomAuthentication
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Logging
+@using Microsoft.JSInterop
+
+
+
+<style>
+    .title-bar {
+        text-align: center;
+        color: #333333;
+        font-size: 30px;
+        padding-bottom: 10px;
+    }
+
+    .body-bar {
+        text-align: center;
+        color: #666;
+        font-size: 15px;
+        padding-bottom: 35px;
+    }
+    .foot-bar {
+        position: fixed;
+        bottom: 0;
+        right: 1%;
+        color: #666;
+        font-size: 20px;
+        padding-bottom: 35px;
+    }
+    .wrap {
+        background-color: #ffffff;
+        padding: 2%;
+        width: 25%;
+        min-width: 350px;
+        margin: 0 auto;
+        -moz-border-radius: 6px;
+        -webkit-border-radius: 6px;
+        box-shadow: 0 0 5px #ccc;
+        border: 1px solid #fff;
+    }
+</style>
+
+<div class="title-bar" style="padding-top:5rem">
+    Авторизация
+</div>
+
+<div class="body-bar">
+    Для регистрации учетной записи обратитесь к администратору!<br />
+</div>
+
+<div class="wrap">
+    <EditForm Model="@_authorizedData" OnValidSubmit="@HandleValidSubmit">
+        <div class="mb-2 text-center">
+            <label class="fw-bold text-muted">Логин</label>
+            <input @bind-value="_authorizedData.Login" class="form-control" />
+        </div>
+        <div class="mb-2 text-center">
+            <label class="fw-bold text-muted">Пароль</label>
+            <input @bind-value="_authorizedData.Password" type="password" class="form-control" />
+        </div>
+        <div class="py-2 mb-2">
+            <button type="submit" class="btn btn-primary w-100">Войти</button>
+        </div>
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+    </EditForm>
+</div>
+
+<footer class="fixed-bottom">
+    <div class="row row-cols-2 px-5">
+        <div class="col">
+            <h6 class="pt-2">version: @_version от 21-12-2023</h6>
+        </div>
+        <div class="col">
+            <ul class="list-unstyled d-flex justify-content-end">
+                <li class="ms-3">
+                    <a href="https://t.me/savelyev_pavel" target="_blank">
+                        <h4 class="bi bi-telegram"></h4>
+                    </a>
+                </li>
+                <li class="ms-3 dropdown">
+                    <h4 class="bi bi-envelope-at-fill" data-bs-toggle="dropdown" data-bs-auto-close="outside" type="button" />
+                    <div class="dropdown-menu p-4" style="width:250px">
+                        <label>pavel_savelyev00@mail.ru</label>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</footer>
+
+@code 
+{
+    [Inject]
+    private ILogger<Login> _logger { get; set; }
+    [Inject]
+    private NavigationManager _navigaionManager { get; set; }
+    [Inject]
+    private AuthenticationStateProvider _authenticationStateProvider { get; set; }
+    [Inject]
+    private IJSRuntime _js { get; set; }
+
+    private AuthorizedData _authorizedData = new();
+
+    private string? _version;
+
+    protected override void OnInitialized()
+    {
+        var assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+        _version = System.Diagnostics.FileVersionInfo.GetVersionInfo(assemblyLocation).FileVersion;
+    }
+
+    private async void HandleValidSubmit()
+    {
+        bool state = await UserAuthorizationExtension.AuthenticateUserAsync(_authorizedData, _authenticationStateProvider);
+        
+        if (state)
+            _navigaionManager.NavigateTo("/", true);
+        else
+            await _js.InvokeVoidAsync("alert", "Неправильный логин или пароль!");
+    }
+}

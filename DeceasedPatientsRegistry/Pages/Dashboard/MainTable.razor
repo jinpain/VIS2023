@@ -1,0 +1,331 @@
+﻿@using CustomAuthentication
+@using DeceasedPatientsRegistry.Extensions
+
+<table class="table table-sm table-bordered table-hover" style="font-size:smaller">
+    <thead>
+        <tr>
+            <th>
+                <button class="btn btn-sm btn-primary bi bi-person-plus-fill" @onclick="() => SetSelectPatient(new())" data-bs-toggle="modal" data-bs-target="#patientModal" />
+            </th>
+            <th>
+                <FilterForm Key="Вскрытие" HeadersFilterTable="_headersFilterTable" RenderParant="StateHasChanged" />
+            </th>
+            <th>
+                <FilterForm Key="Фамилия" HeadersFilterTable="_headersFilterTable" RenderParant="StateHasChanged" />
+            </th>
+            <th>
+                <FilterForm Key="Имя" HeadersFilterTable="_headersFilterTable" RenderParant="StateHasChanged" />
+            </th>
+            <th>
+                <FilterForm Key="Отчество" HeadersFilterTable="_headersFilterTable" RenderParant="StateHasChanged" />
+            </th>
+            <th>
+                <FilterForm Key="№ ИБ" HeadersFilterTable="_headersFilterTable" RenderParant="StateHasChanged" />
+            </th>
+            <th>
+                <FilterForm Key="Отделение" HeadersFilterTable="_headersFilterTable" RenderParant="StateHasChanged" />
+            </th>
+            <th>
+                <FilterForm Key="Отделение по разноске" HeadersFilterTable="_headersFilterTable" RenderParant="StateHasChanged" />
+            </th>
+            <th class="th-red">Дата смерти</th>
+            <th class="th-gray">
+                <FilterForm Key="ОНКО" HeadersFilterTable="_headersFilterTable" RenderParant="StateHasChanged" />
+            </th>
+            <th class="th-gray">Дата регистрации ИБ в архиве</th>
+            <th class="th-gray">Дата возврата ИБ в архив на хранение</th>
+            <th class="th-gray">
+                <FilterForm Key="Архив" HeadersFilterTable="_headersFilterTable" RenderParant="StateHasChanged" />
+            </th>
+            <th class="th-gray"><i class="text-danger bi bi-asterisk" /> Архив</th>
+            <th class="th-yellow">Дата поступления ИБ в отдел ККМП</th>
+            <th class="th-yellow">
+                <FilterForm Key="Экспертиза" HeadersFilterTable="_headersFilterTable" RenderParant="StateHasChanged" />
+            </th>
+            <th class="th-yellow"><i class="text-danger bi bi-asterisk" /> ККМП</th>
+            <th class="th-black">Дата передачи секретарю КИЛИ</th>
+            <th class="th-black">Дата поступления ИБ на КИЛИ</th>
+            <th class="th-black">Дата передачи председателю КИЛИ</th>
+            <th class="th-black">Заседание КИЛИ</th>
+            <th class="th-black"><i class="text-danger bi bi-asterisk" /> КИЛИ</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Filter())
+        {
+            <tr class="@TableExtension.GetRowColor(item.AutopsyType)">
+                <td>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-secondary bi bi-caret-down-fill" data-bs-toggle="dropdown" />
+                        <ul class="dropdown-menu">
+                            <li>
+                                <button class="dropdown-item" @onclick="() => SetSelectPatient(ObjectExtension.Clone(item))" data-bs-toggle="modal" data-bs-target="#patientModal">
+                                    <i class="bi bi-pencil-fill text-primary" />
+                                    Редактировать
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item" @onclick="() => SetSelectPatient(item)" data-bs-toggle="modal" data-bs-target="#printCertificateModal">
+                                    <i class="bi bi-file-earmark-text-fill text-info" />
+                                    Открыть справку
+                                </button>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <button class="dropdown-item" @onclick="() => DeleteOrRestorePatient(item)">
+                                    <i class="@(item.IsDeleted ? "bi bi-arrow-down-circle-fill text-success" : "bi bi-trash3-fill text-danger")" />
+                                    @((item.IsDeleted ? "Восстановить" : "Удалить") + " запись")
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+                <td class="text-center">
+                    @item.AutopsyType
+                </td>
+                <td>
+                    @item.Lastname
+                </td>
+                <td>
+                    @item.Firstname
+                </td>
+                <td>
+                    @item.Surname
+                </td>
+                <td>
+                    @item.MedicalHistoryNumber
+                    @if (item.LocationMedicalHistory != null)
+                    {
+                        <span class="fs-5 @SetColorLocationMedicalHistory(item.LocationMedicalHistory.Value) bi bi-geo-alt-fill" />
+                    }
+                </td>
+                <td>
+                    @item.MainDepartmentName
+                </td>
+                <td>
+                    @item.DepartmentName
+                </td>
+                <td class="th-red">
+                    @DateTimeExtension.ToDateTimeFormatStringOrEmpty(item.DateDeath, "dd.MM.yyyy HH:mm")
+                </td>
+                <td class="th-gray text-center align-middle">
+                    <i class="fs-5 @(item.Oncology ? "bi bi-check-circle-fill text-success" : "bi bi-x-circle-fill text-danger")"></i>
+                </td>
+                <td class="th-gray">
+                    @DateTimeExtension.ToShortDateStringOrEmpty(item.DateRegistration)
+                </td>
+                <td class="th-gray">
+                    @DateTimeExtension.ToShortDateStringOrEmpty(item.DateArchiving)
+                </td>
+                <td class="text-center align-middle th-gray">
+                    @if (!String.IsNullOrEmpty(item.ArchiveName))
+                    {
+                        <div class="dropdown dropstart">
+                            <span type="button" class="fs-5 text-secondary bi bi-geo-alt-fill" data-bs-toggle="dropdown" />
+                            <div class="dropdown-menu p-4 text-center shadow-lg">
+                                @item.ArchiveName
+                            </div>
+                        </div>
+                    }
+                </td>
+                <td class="text-center align-middle th-gray">
+                    @if (item.NoteArchiveId != null)
+                    {
+                        <div class="dropdown dropstart">
+                            <span type="button" class="text-primary fs-5 bi bi-chat-square-text-fill" @onclick="() => GetArchiveNote(item)" data-bs-toggle="dropdown" />
+                            <div class="dropdown-menu p-4 shadow-lg" style="width:500px;max-height:300px;overflow-x:hidden">
+                                <div class="mb-3">
+                                    <h5 class="text-center fw-bold">Примечание архив</h5>
+                                </div>
+                                <div class="mb-3">
+                                    @item.NoteArchive.Text
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </td>
+                <td class="th-yellow">
+                    @DateTimeExtension.ToShortDateStringOrEmpty(item.DateInKKMP)
+                </td>
+                <td class="th-yellow text-center align-middle">
+                    <i class="fs-5 @(item.Expertise ? "bi bi-check-circle-fill text-success" : "bi bi-x-circle-fill text-danger")"></i>
+                </td>
+                <td class="text-center align-middle th-yellow">
+                    @if (item.NoteKKMPId != null)
+                    {
+                        <div class="dropdown dropstart">
+                            <span type="button" class="text-primary fs-5 bi bi-chat-square-text-fill" @onclick="() => GetKKMPNote(item)" data-bs-toggle="dropdown" />
+                            <div class="dropdown-menu p-4 shadow-lg" style="width:500px;max-height:300px;overflow-x:hidden">
+                                <div class="mb-3">
+                                    <h5 class="text-center fw-bold">Примечание отдел ККМП</h5>
+                                </div>
+                                <div class="mb-3">
+                                    @item.NoteKKMP.Text
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </td>
+                <td class="th-black">
+                    @DateTimeExtension.ToShortDateStringOrEmpty(item.DateInSecretaryKILI)
+                </td>
+                <td class="th-black">
+                    @DateTimeExtension.ToShortDateStringOrEmpty(item.DateInKILI)
+                </td>
+                <td class="th-black">
+                    @DateTimeExtension.ToShortDateStringOrEmpty(item.DateTransferKILI)
+                </td>
+                <td class="th-black">
+                    @DateTimeExtension.ToShortDateStringOrEmpty(item.DateMeetingKILI)
+                </td>
+                <td class="text-center align-middle th-black">
+                    @if (item.NoteKILIId != null)
+                    {
+                        <div class="dropdown dropstart">
+                            <span type="button" class="text-primary fs-5 bi bi-chat-square-text-fill" @onclick="() => GetKILINote(item)" data-bs-toggle="dropdown" />
+                            <div class="dropdown-menu p-4 shadow-lg" style="width:500px;max-height:300px;overflow-x:hidden">
+                                <div class="mb-3">
+                                    <h5 class="text-center fw-bold">Заключение КИЛИ</h5>
+                                </div>
+                                <div class="mb-3">
+                                    @item.NoteKILI.Text
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code 
+{
+    [CascadingParameter]
+    public AuthenticationState AuthenticationState { get; set; }
+    [Inject]
+    private HeadersFilterTable _headersFilterTable { get; set; }
+    [Inject]
+    private ReportRepository _reportRepository { get; set; }
+    [Inject]
+    private ConclusionRepository _conclusionRepository { get; set; }
+    [Inject]
+    private NoteRepository _noteRepository { get; set; }
+    [Parameter]
+    public DataManager<Patient, PatientFilter> DataManager { get; set; }
+    [Parameter]
+    public DataManager<Logs, LogsFilter> LogsManager { get; set; }
+    [Parameter]
+    public EventCallback<Patient> SelectPatient { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await DataManager.FilterAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        _headersFilterTable.CheckExistsInFilterOptions(DataManager.GetCachedData());
+    }
+
+    private void DeleteOrRestorePatient(Patient patient)
+    {
+        patient.IsDeleted = !patient.IsDeleted;
+        DataManager.UpdateAsync(patient);
+        if(patient.IsDeleted)
+            LogsManager.InsertAsync(new Logs() { UserName = UserAuthorizationExtension.GetCurentUserFullName(AuthenticationState), MedicalHistoryNumber = patient.MedicalHistoryNumber, ActionType = ActionType.Удалил, Timestamp = DateTime.Now });
+        else
+            LogsManager.InsertAsync(new Logs() { UserName = UserAuthorizationExtension.GetCurentUserFullName(AuthenticationState), MedicalHistoryNumber = patient.MedicalHistoryNumber, ActionType = ActionType.Восстановил, Timestamp = DateTime.Now });
+    }
+
+    private async void SetSelectPatient(Patient patient)
+    {
+        if(patient.ReportId != null)
+        {
+            patient.Report = await _reportRepository.GetByIdAsync(patient.ReportId.Value);
+        }
+        if(patient.ConclusionKILIId != null)
+        {
+            patient.ConclusionKILI = await _conclusionRepository.GetByIdAsync(patient.ConclusionKILIId.Value);
+        }
+        if(patient.NoteArchiveId != null)
+        {
+            patient.NoteArchive = await _noteRepository.GetByIdAsync(patient.NoteArchiveId.Value);
+        }
+        if(patient.NoteKKMPId != null)
+        {
+            patient.NoteKKMP = await _noteRepository.GetByIdAsync(patient.NoteKKMPId.Value);
+        }
+        if(patient.NoteKILIId != null)
+        {
+            patient.NoteKILI = await _noteRepository.GetByIdAsync(patient.NoteKILIId.Value);
+        }
+        await SelectPatient.InvokeAsync(patient);
+    }
+
+    private string SetColorLocationMedicalHistory(LocationMedicalHistory locationMedicalHistory)
+    {
+        if (locationMedicalHistory == LocationMedicalHistory.Архив)
+            return "text-secondary";
+
+        if (locationMedicalHistory == LocationMedicalHistory.ККМП)
+            return "text-warning";
+
+        return "text-black";
+    }
+
+    private List<Patient> Filter()
+    {
+        IQueryable<Patient> patients = DataManager.GetCachedData().Where(x => x.IsDeleted == DataManager.Filter.IsDeleted).AsQueryable();
+        if (DataManager.Filter != null)
+        {
+            if (DataManager.Filter.DateDeathFrom != null)
+                patients = patients.Where(x => x.DateDeath >= DataManager.Filter.DateDeathFrom);
+            if (DataManager.Filter.DateDeathTo != null)
+                patients = patients.Where(x => x.DateDeath <= DataManager.Filter.DateDeathTo);
+            if (!string.IsNullOrEmpty(DataManager.Filter.Lastname))
+                patients = patients.Where(x => x.Lastname.Contains(DataManager.Filter.Lastname));
+            if (!string.IsNullOrEmpty(DataManager.Filter.Firstname))
+                patients = patients.Where(x => x.Firstname.Contains(DataManager.Filter.Firstname));
+            if (!string.IsNullOrEmpty(DataManager.Filter.Surname))
+                patients = patients.Where(x => x.Surname.Contains(DataManager.Filter.Surname));
+            if (!string.IsNullOrEmpty(DataManager.Filter.MedicalHistoryNumber))
+                patients = patients.Where(x => x.MedicalHistoryNumber == DataManager.Filter.MedicalHistoryNumber);
+        }
+        return _headersFilterTable.Filter(patients.ToList());
+    }
+
+    private async Task GetReport(Patient patient)
+    {
+        if(patient.Report == null)
+        {
+            patient.Report = await _reportRepository.GetByIdAsync(patient.ReportId.Value);
+        }
+    }
+
+    private async Task GetArchiveNote(Patient patient)
+    {
+        if (patient.NoteArchive.Id == Guid.Empty)
+        {
+            patient.NoteArchive = await _noteRepository.GetByIdAsync(patient.NoteArchiveId.Value);
+        }
+    }
+
+    private async Task GetKKMPNote(Patient patient)
+    {
+        if (patient.NoteKKMP.Id == Guid.Empty)
+        {
+            patient.NoteKKMP = await _noteRepository.GetByIdAsync(patient.NoteKKMPId.Value);
+        }
+    }
+
+    private async Task GetKILINote(Patient patient)
+    {
+        if (patient.NoteKILI.Id == Guid.Empty)
+        {
+            patient.NoteKILI = await _noteRepository.GetByIdAsync(patient.NoteKILIId.Value);
+        }
+    }
+}

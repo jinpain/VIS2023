@@ -1,0 +1,23 @@
+﻿<div class="dropdown">
+    <button class="btn btn-secondary dropdown-toggle w-100" data-bs-toggle="dropdown" style="height:58px">
+        <span>ОНКО</span>
+        <br />
+        @(Value?"Да":"Нет")
+    </button>
+    <ul class="dropdown-menu w-100">
+        <li>
+            <button class="dropdown-item" @onclick="() => SetOncologyStatus.InvokeAsync(false)">Нет</button>
+        </li>
+        <li>
+            <button class="dropdown-item" @onclick="() => SetOncologyStatus.InvokeAsync(true)">Да</button>
+        </li>
+    </ul>
+</div>
+
+@code
+{
+    [Parameter]
+    public bool Value { get; set; }
+    [Parameter]
+    public EventCallback<bool> SetOncologyStatus { get; set; }
+}

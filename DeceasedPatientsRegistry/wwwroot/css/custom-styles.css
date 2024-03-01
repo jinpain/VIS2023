@@ -1,0 +1,25 @@
+﻿.btn-transparent {
+    background-color: transparent;
+    border-color: transparent;
+    color: inherit;
+}
+
+.th-red {
+    border: 2px solid red !important;
+    border-right: 2px solid red !important;
+}
+
+.th-gray {
+    border: 2px solid gray !important;
+    border-right: 2px solid gray !important;
+}
+
+.th-yellow {
+    border: 2px solid #f5dd00 !important;
+    border-right: 2px solid #f5dd00 !important;
+}
+
+.th-black {
+    border: 2px solid black !important;
+    border-right: 2px solid black !important;
+}

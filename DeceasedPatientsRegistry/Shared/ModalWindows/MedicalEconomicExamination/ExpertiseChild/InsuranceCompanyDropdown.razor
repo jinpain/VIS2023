@@ -1,0 +1,40 @@
+﻿@using DeceasedPatientsRegistry.Services.DatabaseHandlers.ExternalAPIHandlers.MedicalEconomicExaminationAPI
+@using global::MedicalEconomicExamination.Domain.Entities
+
+<div class="w-100">
+    <button type="button" class="btn btn-outline-secondary dropdown-toggle w-100" @onclick="Get" data-bs-toggle="dropdown">
+        Страховая организация
+        <br />
+        @Value
+    </button>
+    <ul class="dropdown-menu w-100" style="max-height:300px;overflow-y:auto">
+        @foreach (var item in _insuranceCompany)
+        {
+            <li>
+                <button class="dropdown-item" type="button">@item.Name</button>
+            </li>
+        }
+    </ul>
+</div>
+
+
+
+@code
+{
+    [Parameter]
+    public EventCallback<string> SetValue { get; set; }
+    [Parameter]
+    public string? Value { get; set; }
+    [Inject]
+    private InsuranceCompanyAPI _insuranceCompanyAPI { get; set; }
+
+    private List<InsuranceCompany> _insuranceCompany = new();
+
+    private async void Get()
+    {
+        if (_insuranceCompany.Count == 0)
+        {
+            await _insuranceCompanyAPI.Get();
+        }
+    }
+}

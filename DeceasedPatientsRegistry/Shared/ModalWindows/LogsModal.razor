@@ -1,0 +1,142 @@
+﻿<div class="modal fade" id="logsModal" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">
+                    <button class="btn btn-sm btn-info text-white" disabled>
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                    </button>
+                    Логи
+                </h1>
+                <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+            <div class="modal-body" style="padding:0 !important">
+                <div class="pt-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row row-cols-4">
+                                <div class="col">
+                                    <FloatingLabel Label="Номер мед.карты">
+                                        <input type="text" class="form-control" @bind="_logsFilter.MedicalHistoryNumber" />
+                                    </FloatingLabel>
+                                </div>
+                                <div class="col">
+                                    <FloatingLabel Label="C">
+                                        <input type="date" class="form-control" @bind="_logsFilter.StartDate" />
+                                    </FloatingLabel>
+                                </div>
+                                <div class="col">
+                                    <FloatingLabel Label="По">
+                                        <input type="date" class="form-control" @bind="_logsFilter.EndDate" />
+                                    </FloatingLabel>
+                                </div>
+                                <div class="col">
+                                    <div class="btn-group w-100 h-100" role="group">
+                                        <button class="btn btn-secondary bi bi-search" @onclick="() => Search(_logsFilter)" />
+                                        <button class="btn btn-danger bi bi-x-square-fill" @onclick="() => Search(_logsFilter = new())" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm" style="font-size:smaller">
+                                <thead>
+                                    <tr>
+                                        <th width="50px"></th>
+                                        <th>№ ИБ</th>
+                                        <th>Дата и время</th>
+                                        <th>Действие</th>
+                                        <th>ФИО сотрудника</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in DataManager.GetCachedData())
+                                    {
+                                        <tr class="@GetColorRow(item.ActionType)">
+                                            <td @onclick="() => SetSelectPatient(item.MedicalHistoryNumber)" data-bs-toggle="modal" data-bs-target="#patientModal">
+                                                <i class="btn btn-sm btn-info text-white bi bi-eye-fill"></i>
+                                            </td>
+                                            <td>@item.MedicalHistoryNumber</td>
+                                            <td>@item.Timestamp</td>
+                                            <td>@item.ActionType</td>
+                                            <td>@item.UserName</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code 
+{
+    [Parameter]
+    public DataManager<Logs, LogsFilter> DataManager { get; set; }
+    [Parameter]
+    public EventCallback<Patient> SelectPatient { get; set; }
+    [Inject]
+    private PatientRepository _patientRepository { get; set; }
+    [Inject]
+    private HeadersFilterTable _headersFilterTable { get; set; }
+    [Inject]
+    private ReportRepository _reportRepository { get; set; }
+    [Inject]
+    private ConclusionRepository _conclusionRepository { get; set; }
+    [Inject]
+    private NoteRepository _noteRepository { get; set; }
+
+    private LogsFilter _logsFilter = new();
+
+    private async void Search(LogsFilter logsFilter)
+    {
+        DataManager.SetFilter(logsFilter);
+        await DataManager.FilterAsync();
+        StateHasChanged();
+    }
+
+    private async void SetSelectPatient(string medicalHistoryNumber)
+    {
+        Patient patient = await _patientRepository.GetPatientByMedicalHistoryNumber(medicalHistoryNumber);
+        if (patient == null)
+            return;
+
+        if (patient.ReportId != null)
+        {
+            patient.Report = await _reportRepository.GetByIdAsync(patient.ReportId.Value);
+        }
+        if (patient.ConclusionKILIId != null)
+        {
+            patient.ConclusionKILI = await _conclusionRepository.GetByIdAsync(patient.ConclusionKILIId.Value);
+        }
+        if (patient.NoteArchiveId != null)
+        {
+            patient.NoteArchive = await _noteRepository.GetByIdAsync(patient.NoteArchiveId.Value);
+        }
+        if (patient.NoteKKMPId != null)
+        {
+            patient.NoteKKMP = await _noteRepository.GetByIdAsync(patient.NoteKKMPId.Value);
+        }
+        if (patient.NoteKILIId != null)
+        {
+            patient.NoteKILI = await _noteRepository.GetByIdAsync(patient.NoteKILIId.Value);
+        }
+        await SelectPatient.InvokeAsync(patient);
+    }
+
+    private string GetColorRow(ActionType actionType)
+    {
+        if (actionType == ActionType.Добавил)
+            return "table-success";
+        if (actionType == ActionType.Обновил)
+            return "table-primary";
+        if (actionType == ActionType.Удалил)
+            return "table-danger";
+        if (actionType == ActionType.Восстановил)
+            return "table-success";
+        return "";
+    }
+}

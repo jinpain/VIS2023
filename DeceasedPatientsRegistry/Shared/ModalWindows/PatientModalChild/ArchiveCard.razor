@@ -1,0 +1,95 @@
+﻿<div class="card border-3 border-secondary h-100">
+    <div class="card-header" style="height:48px">
+        <div class="row row-cols-3">
+            <div class="col">
+                @if (Patient.Id != Guid.Empty)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input border-dark" type="radio" name="flexRadioDefault" id="archiveCheck" @onchange="OnchangeCheckBox" @attributes="CheckboxSetAttributes()">
+                        <label class="form-check-label fw-bold" for="archiveCheck">ИБ на руках</label>
+                    </div>
+                }
+            </div>
+            <div class="col text-center">
+                Архив
+            </div>
+            <div class="col">
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <fieldset @attributes="FieldsetSetAttributes()">
+            <div class="row row-cols-3 pb-2">
+                <div class="col">
+                    <FloatingLabel Label="Дата регистрации ИБ в архиве">
+                        <input type="date" class="form-control" @bind="Patient.DateRegistration" @oninput="() => PatientChanged.InvokeAsync()" />
+                    </FloatingLabel>
+                </div>
+                <div class="col">
+                    <FloatingLabel Label="Дата возврата ИБ на хранение">
+                        <input type="date" class="form-control" @bind="Patient.DateArchiving" @oninput="() => PatientChanged.InvokeAsync()" />
+                    </FloatingLabel>
+                </div>
+                <div class="col">
+                    <ArchiveDropdown DataManager="DataManager" Value="@Value" ModalUpdated="() => ModalUpdated.InvokeAsync()" SetArchiveName="x => SetArchiveName.InvokeAsync(x)" />
+                </div>
+            </div>
+            <FloatingLabel Label="Примечание">
+                <textarea class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.NoteArchive.Text" @onkeyup="() => ArchiveChanged.InvokeAsync()" style="resize:none; min-height:150px" />
+            </FloatingLabel>
+        </fieldset>
+    </div>
+</div>
+
+@code
+{
+    [CascadingParameter]
+    public AuthenticationState AuthenticationState { get; set; }
+    [Parameter]
+    public DataManager<Archive, ArchiveFilter> DataManager { get; set; }
+    [Parameter]
+    public DataManager<MedicalHistoryRouteMap, MedicalHistoryRouteMapFilter> MedicalHistoryRouteMapDataManager { get; set; }
+    [Parameter]
+    public Patient Patient { get; set; }
+    [Parameter]
+    public EventCallback ModalUpdated { get; set; }
+    [Parameter]
+    public EventCallback ArchiveChanged { get; set; }
+    [Parameter]
+    public EventCallback PatientChanged { get; set; }
+    [Parameter]
+    public EventCallback<string> SetArchiveName { get; set; }
+    [Parameter]
+    public bool SaveButtonStatus { get; set; }
+    [Parameter]
+    public string? Value { get; set; }
+
+    private Dictionary<string, object> FieldsetSetAttributes()
+    {
+        Dictionary<string, object> tmp = new();
+        if(Patient.LocationMedicalHistory != LocationMedicalHistory.Архив)
+            tmp.Add("disabled", "true");
+        return tmp;
+    }
+
+    private Dictionary<string, object> CheckboxSetAttributes()
+    {
+        Dictionary<string, object> tmp = new();
+        if (Patient.LocationMedicalHistory == LocationMedicalHistory.Архив)
+            tmp.Add("checked", "true");
+        return tmp;
+    }
+
+    private void OnchangeCheckBox()
+    {
+        Patient.LocationMedicalHistory = LocationMedicalHistory.Архив;
+        MedicalHistoryRouteMapDataManager.InsertAsync(new()
+            {
+                PatientId = Patient.Id,
+                DateTime = DateTime.Now,
+                LocationMedicalHistory = LocationMedicalHistory.Архив,
+                Specialist = CustomAuthentication.UserAuthorizationExtension.GetCurentUserFullName(AuthenticationState)
+            });
+        PatientChanged.InvokeAsync();
+    }
+}

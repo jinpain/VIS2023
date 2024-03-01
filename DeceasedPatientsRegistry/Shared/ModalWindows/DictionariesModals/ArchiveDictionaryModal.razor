@@ -1,0 +1,99 @@
+﻿<div class="modal fade" id="archivesDictionaryModal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">
+                    Словарь архивов
+                </h1>
+                <button class="btn btn-sm btn-primary" data-bs-target="#patientModal" data-bs-toggle="modal">Открыть карточку пациента</button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <td width="50px">
+                                <i type="button" class="bi bi-plus-circle-fill text-success" data-bs-toggle="dropdown" data-bs-auto-close="outside" />
+                                <div class="dropdown-menu p-4 shadow-lg" style="min-width:350px">
+                                    <div class="mb-3">
+                                        <h5 class="text-center fw-bold">Форма добавления</h5>
+                                    </div>
+                                    <FloatingLabel Label="Наименование" CustomClass="pb-2">
+                                        <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_newArchive.Name" />
+                                    </FloatingLabel>
+                                    <FloatingLabel Label="Местоположение" CustomClass="pb-2">
+                                        <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_newArchive.Location" />
+                                    </FloatingLabel>
+                                    <FloatingLabel Label="Описание" CustomClass="pb-2">
+                                        <textarea class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_newArchive.Description" style="height:150px" />
+                                    </FloatingLabel>
+                                    <div class="d-flex justify-content-between">
+                                        <button class="btn btn-secondary" @onclick="() => _newArchive = new()">Очистить</button>
+                                        <button type="submit" class="btn btn-primary" @onclick="Insert">Добавить</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <th width="300px">Наименование</th>
+                            <th>Местоположение</th>
+                            <th>Описание</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in DataManager.GetCachedData().Where(x => x.IsDeleted == false))
+                        {
+                            <tr>
+                                <td>
+                                    <i type="button" class="bi bi-pencil-fill text-primary" @onclick="() => SelectArchive(item)" data-bs-toggle="dropdown" data-bs-auto-close="outside" />
+                                    <div class="dropdown-menu p-4 shadow-lg" style="min-width:350px">
+                                        <div class="mb-3">
+                                            <h5 class="text-center fw-bold">Форма редактирования</h5>
+                                        </div>
+                                        <FloatingLabel Label="Наименование" CustomClass="pb-2">
+                                            <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_selectedArchive.Name" />
+                                        </FloatingLabel>
+                                        <FloatingLabel Label="Местоположение" CustomClass="pb-2">
+                                            <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_selectedArchive.Location" />
+                                        </FloatingLabel>
+                                        <FloatingLabel Label="Описание" CustomClass="pb-2">
+                                            <textarea class="form-control" @bind="_selectedArchive.Description" style="height:150px" />
+                                        </FloatingLabel>
+                                        <div class="d-flex justify-content-between">
+                                            <button class="btn btn-danger" @onclick="() => Delete(_selectedArchive)">Удалить</button>
+                                            <button class="btn btn-primary" @onclick="() => DataManager.UpdateAsync(_selectedArchive)">Сохранить</button>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@item.Name</td>
+                                <td>@item.Location</td>
+                                <td>@item.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public DataManager<Archive, ArchiveFilter> DataManager { get; set; }
+
+    private Archive _newArchive = new();
+
+    private Archive _selectedArchive = new();
+
+    private void Insert()
+    {
+        DataManager.InsertAsync(_newArchive);
+        _newArchive = new();
+    }
+
+    private void Delete(Archive archive)
+    {
+        archive.IsDeleted = true;
+        DataManager.DeleteAsync(archive);
+    }
+
+    private void SelectArchive(Archive archive) => _selectedArchive = ObjectExtension.Clone(archive);
+}

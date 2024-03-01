@@ -1,0 +1,16 @@
+﻿@page "/"
+@using CustomAuthentication.Models
+@using DeceasedPatientsRegistry.Pages.Dashboard
+
+<AuthorizeView>
+    <Authorized>
+        <CascadingValue Value="context">
+            <DataDashboard />
+            <AuthorizeView Roles="Administrator,Creator,Editor" Context="innerContext">
+            </AuthorizeView>
+        </CascadingValue>
+    </Authorized>
+    <NotAuthorized>
+        <AuthRazorLibrary.Login />
+    </NotAuthorized>
+</AuthorizeView>

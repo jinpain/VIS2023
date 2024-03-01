@@ -1,0 +1,53 @@
+﻿<div class="modal fade" id="medicalHistoryRouteMapManager" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">
+                    <button class="btn btn-sm btn-info text-white" disabled>
+                        <i class="bi bi-map-fill"></i>
+                    </button>
+                    Маршрутная карта истории болезни
+                </h1>
+                <button class="btn btn-sm btn-primary" data-bs-target="#patientModal" data-bs-toggle="modal">Открыть карточку пациента</button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm" style="font-size:smaller">
+                    <thead>
+                        <tr>
+                            <th width="150px">Дата и время</th>
+                            <th width="67px">Блок</th>
+                            <th>ФИО специалиста</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in DataManager.GetCachedData())
+                        {
+                            <tr class="@GetColorRow(item.LocationMedicalHistory.Value)">
+                                <td>@item.DateTime</td>
+                                <td>@item.LocationMedicalHistory</td>
+                                <td>@item.Specialist</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code 
+{
+    [Parameter]
+    public DataManager<MedicalHistoryRouteMap, MedicalHistoryRouteMapFilter> DataManager { get; set; }
+
+    private string GetColorRow(LocationMedicalHistory locationMedicalHistory)
+    {
+        if (locationMedicalHistory == LocationMedicalHistory.Архив)
+            return "table-secondary";
+        else if (locationMedicalHistory == LocationMedicalHistory.ККМП)
+            return "table-warning";
+        else if (locationMedicalHistory == LocationMedicalHistory.КИЛИ)
+            return "table-dark";
+        return "";
+    }
+}

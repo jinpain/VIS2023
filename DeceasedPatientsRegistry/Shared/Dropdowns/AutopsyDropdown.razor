@@ -1,0 +1,23 @@
+﻿<div class="dropdown">
+    <button class="btn btn-secondary dropdown-toggle w-100" data-bs-toggle="dropdown" style="height:58px">
+        <span>Тип вскрытия</span>
+        <br />
+        @Value
+    </button>
+    <ul class="dropdown-menu w-100">
+        @foreach (AutopsyType autopsy in (AutopsyType[])Enum.GetValues(typeof(AutopsyType)))
+        {
+            <li>
+                <button @onclick="() => SetAutopsyType.InvokeAsync(autopsy)" class="dropdown-item" type="button">@autopsy</button>
+            </li>
+        }
+    </ul>
+</div>
+
+@code 
+{
+    [Parameter]
+    public string? Value { get; set; }
+    [Parameter]
+    public EventCallback<AutopsyType> SetAutopsyType { get; set; }
+}

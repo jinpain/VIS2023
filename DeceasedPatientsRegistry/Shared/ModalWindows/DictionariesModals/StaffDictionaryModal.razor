@@ -1,0 +1,95 @@
+﻿<div class="modal fade" id="staffDictionaryModal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">
+                    Словарь сотрудников
+                </h1>
+                <button class="btn btn-sm btn-primary" data-bs-target="#patientModal" data-bs-toggle="modal">Открыть карточку пациента</button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <td width="50px">
+                                <i type="button" class="bi bi-plus-circle-fill text-success" data-bs-toggle="dropdown" data-bs-auto-close="outside" />
+                                <div class="dropdown-menu p-4 shadow-lg" style="min-width:350px">
+                                    <div class="mb-3">
+                                        <h5 class="text-center fw-bold">Форма добавления</h5>
+                                    </div>
+                                    <FloatingLabel Label="Фамилия" CustomClass="pb-2">
+                                        <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_newStaff.Lastname" />
+                                    </FloatingLabel>
+                                    <FloatingLabel Label="Имя" CustomClass="pb-2">
+                                        <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_newStaff.Firstname" />
+                                    </FloatingLabel>
+                                    <FloatingLabel Label="Отчество" CustomClass="pb-2">
+                                        <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_newStaff.Surname" />
+                                    </FloatingLabel>
+                                    <div class="d-flex justify-content-between">
+                                        <button class="btn btn-secondary" @onclick="() => _newStaff = new()">Очистить</button>
+                                        <button type="submit" class="btn btn-primary" @onclick="Insert">Добавить</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <th>ФИО сотрудника</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in DataManager.GetCachedData().Where(x => x.IsDeleted == false))
+                        {
+                            <tr>
+                                <td>
+                                    <i type="button" class="bi bi-pencil-fill text-primary" @onclick="() => SelectStaff(item)" data-bs-toggle="dropdown" data-bs-auto-close="outside" />
+                                    <div class="dropdown-menu p-4 shadow-lg" style="min-width:350px">
+                                        <div class="mb-3">
+                                            <h5 class="text-center fw-bold">Форма редактирования</h5>
+                                        </div>
+                                        <FloatingLabel Label="Фамилия" CustomClass="pb-2">
+                                            <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_selectedStaff.Lastname" />
+                                        </FloatingLabel>
+                                        <FloatingLabel Label="Имя" CustomClass="pb-2">
+                                            <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_selectedStaff.Firstname" />
+                                        </FloatingLabel>
+                                        <FloatingLabel Label="Отчество" CustomClass="pb-2">
+                                            <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_selectedStaff.Surname" />
+                                        </FloatingLabel>
+                                        <div class="d-flex justify-content-between">
+                                            <button class="btn btn-danger" @onclick="() => Delete(item)">Удалить</button>
+                                            <button class="btn btn-primary" @onclick="() => DataManager.UpdateAsync(_selectedStaff)">Сохранить</button>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@($"{item.Lastname} {item.Firstname} {item.Surname}")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public DataManager<Staff, StaffFilter> DataManager { get; set; }
+
+    private Staff _newStaff = new();
+
+    private Staff _selectedStaff = new();
+
+    private void Insert()
+    {
+        DataManager.InsertAsync(_newStaff);
+        _newStaff = new();
+    }
+
+    private void Delete(Staff staff)
+    {
+        staff.IsDeleted = true;
+        DataManager.DeleteAsync(staff);
+    }
+
+    private void SelectStaff(Staff staff) => _selectedStaff = ObjectExtension.Clone(staff);
+}

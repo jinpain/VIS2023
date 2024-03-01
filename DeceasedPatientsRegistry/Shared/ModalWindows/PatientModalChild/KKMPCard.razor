@@ -1,0 +1,83 @@
+﻿<div class="card border-3 border-warning h-100">
+    <div class="card-header" style="height:48px">
+        <div class="row row-cols-3">
+            <div class="col">
+                @if(Patient.Id != Guid.Empty)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input border-dark" type="radio" name="flexRadioDefault" id="kkmpCheck" @onchange="OnchangeCheckBox" @attributes="CheckboxSetAttributes()">
+                        <label class="form-check-label fw-bold" for="kkmpCheck">ИБ на руках</label>
+                    </div>
+                }
+            </div>
+            <div class="col text-center">
+                Отдел ККМП
+            </div>
+            <div class="col">
+                @if (Patient.Expertise)
+                {
+                    <button class="btn btn-sm btn-warning w-100" data-bs-toggle="modal" data-bs-target="#expertisePatientModal">Открыть экспертизу</button>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <fieldset @attributes="FieldsetSetAttributes()">
+            <div class="row row-cols-2 pb-2">
+                <div class="col">
+                    <FloatingLabel Label="Дата поступления ИБ">
+                        <input type="date" class="form-control" @bind="Patient.DateInKKMP" @oninput="() => PatientChanged.InvokeAsync()" />
+                    </FloatingLabel>
+                </div>
+                <div class="col">
+                </div>
+            </div>
+            <FloatingLabel Label="Примечание">
+                <textarea class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.NoteKKMP.Text" @onkeyup="() => KKMPChanged.InvokeAsync()" style="resize:none; min-height:150px" />
+            </FloatingLabel>
+        </fieldset>
+    </div>
+</div>
+
+@code
+{
+    [CascadingParameter]
+    public AuthenticationState AuthenticationState { get; set; }
+    [Parameter]
+    public Patient Patient { get; set; }
+    [Parameter]
+    public DataManager<MedicalHistoryRouteMap, MedicalHistoryRouteMapFilter> MedicalHistoryRouteMapDataManager { get; set; }
+    [Parameter]
+    public EventCallback KKMPChanged { get; set; }
+    [Parameter]
+    public EventCallback PatientChanged { get; set; }
+
+    private Dictionary<string, object> FieldsetSetAttributes()
+    {
+        Dictionary<string, object> tmp = new();
+        if (Patient.LocationMedicalHistory != LocationMedicalHistory.ККМП)
+            tmp.Add("disabled", "true");
+        return tmp;
+    }
+
+    private Dictionary<string, object> CheckboxSetAttributes()
+    {
+        Dictionary<string, object> tmp = new();
+        if (Patient.LocationMedicalHistory == LocationMedicalHistory.ККМП)
+            tmp.Add("checked", "true");
+        return tmp;
+    }
+
+    private void OnchangeCheckBox()
+    {
+        Patient.LocationMedicalHistory = LocationMedicalHistory.ККМП;
+        MedicalHistoryRouteMapDataManager.InsertAsync(new()
+            {
+                PatientId = Patient.Id,
+                DateTime = DateTime.Now,
+                LocationMedicalHistory = LocationMedicalHistory.ККМП,
+                Specialist = CustomAuthentication.UserAuthorizationExtension.GetCurentUserFullName(AuthenticationState)
+            });
+        PatientChanged.InvokeAsync();
+    }
+}

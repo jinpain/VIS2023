@@ -1,0 +1,51 @@
+﻿@using static SharedComponents.Extensions.BootstrapColor
+<style>
+    body {
+        font-family: Rubik,sans-serif;
+        margin: 0;
+        overflow-x: hidden;
+        font-weight: 300
+    }
+
+    error-box {
+        height: 100%;
+        position: fixed;
+        top: 20%;
+        width: 100%
+    }
+
+    .error-box .footer {
+        width: 100%;
+        left: 0;
+        right: 0
+    }
+
+    .error-body {
+        padding-top: 5%
+    }
+
+        .error-body h1 {
+            font-size: 210px;
+            font-weight: 900;
+            line-height: 210px
+        }
+</style>
+
+<section class="container-fluid w-100">
+    <div class="error-body text-center">
+        <h1 class="@GetTextColor(BootstrapColorType) pb-3">@ErrorCode</h1>
+        @ChildContent
+        <p class="text-muted pt-3">Пожалуйста, обратитесь к системному администратору, чтобы решить эту проблему.</p>
+        <p class="fixed-bottom pb-5 text-muted fw-bold">Телефон отдела АСУ: 741-66-65</p>
+    </div>
+</section>
+
+@code
+{
+    [Parameter]
+    public string? ErrorCode { get; set; }
+    [Parameter]
+    public BootstrapColorType BootstrapColorType { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

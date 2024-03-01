@@ -1,0 +1,109 @@
+﻿<div class="card border-3 border-dark h-100">
+    <div class="card-header">
+        <div class="row row-cols-3">
+            <div class="col">
+                @if (Patient.Id != Guid.Empty)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input border-dark" type="radio" name="flexRadioDefault" id="kiliCheck" @onchange="OnchangeCheckBox" @attributes="CheckboxSetAttributes()">
+                        <label class="form-check-label fw-bold" for="kiliCheck">ИБ на руках</label>
+                    </div>
+                }
+            </div>
+            <div class="col text-center">
+                КИЛИ
+            </div>
+            <div class="col">
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <fieldset @attributes="FieldsetSetAttributes()">
+            <div class="row row-cols-4 pb-2">
+                <div class="col">
+                    <FloatingLabel Label="Дата передачи секретарю КИЛИ">
+                        <input type="date" class="form-control" @bind="Patient.DateInSecretaryKILI" @oninput="() => PatientChanged.InvokeAsync()" />
+                    </FloatingLabel>
+                </div>
+                <div class="col">
+                    <FloatingLabel Label="Дата поступления ИБ на КИЛИ">
+                        <input type="date" class="form-control" @bind="Patient.DateInKILI" @oninput="() => PatientChanged.InvokeAsync()" />
+                    </FloatingLabel>
+                </div>
+                <div class="col">
+                    <FloatingLabel Label="Дата передачи председателю КИЛИ/зав.отд.">
+                        <input type="date" class="form-control" @bind="Patient.DateTransferKILI" @oninput="() => PatientChanged.InvokeAsync()" />
+                    </FloatingLabel>
+                </div>
+                <div class="col">
+                    <FloatingLabel Label="Дата заседания КИЛИ">
+                        <input type="date" class="form-control" @bind="Patient.DateMeetingKILI" @oninput="() => PatientChanged.InvokeAsync()" />
+                    </FloatingLabel>
+                </div>
+            </div>
+            <FloatingLabel Label="Заключение" CustomClass="pb-2">
+                <textarea class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.NoteKILI.Text" @onkeyup="() => KILIChanged.InvokeAsync()" style="resize:none; min-height:150px" />
+            </FloatingLabel>
+            <FloatingLabel Label="Указать, кем и когда допущены дефекты" CustomClass="pb-2">
+                <textarea class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.ConclusionKILI.WhoMadeDefect" @onkeyup="() => ConclusionKILIChanged.InvokeAsync()" style="resize:none; min-height:150px" />
+            </FloatingLabel>
+            <FloatingLabel Label="Указать причины дефектов" CustomClass="pb-2">
+                <textarea class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.ConclusionKILI.CauseDefect" @onkeyup="() => ConclusionKILIChanged.InvokeAsync()" style="resize:none; min-height:150px" />
+            </FloatingLabel>
+            <FloatingLabel Label="Указать связь дефектов с наступлением летального исхода" CustomClass="pb-2">
+                <textarea class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.ConclusionKILI.ConnectionDefectAndDeath" @onkeyup="() => ConclusionKILIChanged.InvokeAsync()" style="resize:none; min-height:150px" />
+            </FloatingLabel>
+            <FloatingLabel Label="Решение КИЛИ" CustomClass="pb-2">
+                <textarea class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.ConclusionKILI.SolutionKILI" @onkeyup="() => ConclusionKILIChanged.InvokeAsync()" style="resize:none; min-height:150px" />
+            </FloatingLabel>
+            <FloatingLabel Label="Рекомендации КИЛИ">
+                <textarea class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.ConclusionKILI.RecommendationsKILI" @onkeyup="() => ConclusionKILIChanged.InvokeAsync()" style="resize:none; min-height:150px" />
+            </FloatingLabel>
+        </fieldset>
+    </div>
+</div>
+
+@code
+{
+    [CascadingParameter]
+    public AuthenticationState AuthenticationState { get; set; }
+    [Parameter]
+    public Patient Patient { get; set; }
+    [Parameter]
+    public DataManager<MedicalHistoryRouteMap, MedicalHistoryRouteMapFilter> MedicalHistoryRouteMapDataManager { get; set; }
+    [Parameter]
+    public EventCallback KILIChanged { get; set; }
+    [Parameter]
+    public EventCallback PatientChanged { get; set; }
+    [Parameter]
+    public EventCallback ConclusionKILIChanged { get; set; }
+
+    private Dictionary<string, object> FieldsetSetAttributes()
+    {
+        Dictionary<string, object> tmp = new();
+        if (Patient.LocationMedicalHistory != LocationMedicalHistory.КИЛИ)
+            tmp.Add("disabled", "true");
+        return tmp;
+    }
+
+    private Dictionary<string, object> CheckboxSetAttributes()
+    {
+        Dictionary<string, object> tmp = new();
+        if (Patient.LocationMedicalHistory == LocationMedicalHistory.КИЛИ)
+            tmp.Add("checked", "true");
+        return tmp;
+    }
+
+    private void OnchangeCheckBox()
+    {
+        Patient.LocationMedicalHistory = LocationMedicalHistory.КИЛИ;
+        MedicalHistoryRouteMapDataManager.InsertAsync(new()
+            {
+                PatientId = Patient.Id,
+                DateTime = DateTime.Now,
+                LocationMedicalHistory = LocationMedicalHistory.КИЛИ,
+                Specialist = CustomAuthentication.UserAuthorizationExtension.GetCurentUserFullName(AuthenticationState)
+            });
+        PatientChanged.InvokeAsync();
+    }
+}

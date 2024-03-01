@@ -1,0 +1,46 @@
+﻿<div class="card h-100">
+    <div class="card-header text-center" style="height:48px">
+        Отчет о проверке
+        <button class="btn btn-sm btn-info text-white bi bi-eye-fill @(SaveButtonStatus?"disabled":"")" data-bs-toggle="modal" data-bs-target="#printCertificateModal" />
+    </div>
+    <div class="card-body">
+        <div class="row row-cols-2 pb-2">
+            <div class="col">
+                <FloatingLabel Label="Дата проверки">
+                    <input type="date" class="form-control" @bind="Report.DateTime" @oninput="() => ReportChanged.InvokeAsync()" />
+                </FloatingLabel>
+            </div>
+            <div class="col">
+                <StaffDropdown DataManager="DataManager" Value="@Report.Inspector" SetStaffName="SetStaffName" ModalUpdated="Update" />
+            </div>
+        </div>
+        <FloatingLabel Label="Описание" CustomClass="h-75">
+            <textarea class="form-control h-100" oninput="capitalizeFirstLetter(this)" @bind="Report.Note" @onkeyup="() => ReportChanged.InvokeAsync()" style="resize:none" />
+        </FloatingLabel>
+    </div>
+</div>
+
+@code 
+{
+    [Parameter]
+    public DataManager<Staff, StaffFilter> DataManager { get; set; }
+    [Parameter]
+    public Report Report { get; set; }
+    [Parameter]
+    public EventCallback ModalUpdated { get; set; }
+    [Parameter]
+    public EventCallback ReportChanged { get; set; }
+    [Parameter]
+    public bool SaveButtonStatus { get; set; }
+
+    private void SetStaffName(string name)
+    {
+        Report.Inspector = name;
+        ReportChanged.InvokeAsync();
+    }
+
+    private void Update()
+    {
+        ModalUpdated.InvokeAsync();
+    }
+}

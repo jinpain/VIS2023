@@ -1,0 +1,37 @@
+﻿<div class="btn-group w-100" role="group" style="max-height:58px">
+    <div class="btn-group w-100" role="group">
+        <button type="button" class="btn btn-secondary dropdown-toggle" @onclick="Get" data-bs-toggle="dropdown">
+            Расположение ИБ
+            <br />
+            @Value
+        </button>
+        <ul class="dropdown-menu w-100" style="max-height:300px;overflow-y:auto">
+            @foreach (var item in DataManager.GetCachedData().Where(x => x.IsDeleted == false))
+            {
+                <li><button class="dropdown-item" @onclick="() => SetArchiveName.InvokeAsync(item.Name)">@item.Name</button></li>
+            }
+        </ul>
+    </div>
+    <button type="button" class="btn btn-primary bi bi-journals" @onclick="Get" data-bs-toggle="modal" data-bs-target="#archivesDictionaryModal" />
+</div>
+
+@code 
+{
+    [Parameter]
+    public EventCallback<string> SetArchiveName { get; set; }
+    [Parameter]
+    public EventCallback ModalUpdated { get; set; }
+    [Parameter]
+    public DataManager<Archive, ArchiveFilter> DataManager { get; set; }
+    [Parameter]
+    public string? Value { get; set; }
+
+    private async void Get()
+    {
+        if (DataManager.GetCachedData().Count == 0)
+        {
+            await DataManager.GetAllAsync();
+        }
+        await ModalUpdated.InvokeAsync();
+    }
+}

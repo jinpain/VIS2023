@@ -1,0 +1,66 @@
+﻿@using DeceasedPatientsRegistry.Shared.ModalWindows.MedicalEconomicExamination.ExpertiseChild
+
+<div class="row row-cols-2">
+    <div class="col">
+        <div class="row row-cols-3">
+            <div class="col">
+                <FloatingLabel Label="Номер мед. карты" CustomClass="pb-2">
+                    <input class="form-control" autocomplete="off">
+                </FloatingLabel>
+            </div>
+            <div class="col">
+                <FloatingLabel Label="С" CustomClass="pb-2">
+                    <input type="date" class="form-control" />
+                </FloatingLabel>
+            </div>
+            <div class="col">
+                <FloatingLabel Label="По" CustomClass="pb-2">
+                    <input type="date" class="form-control" />
+                </FloatingLabel>
+            </div>
+            <div class="col">
+                <FloatingLabel Label="Фамилия" CustomClass="pb-2">
+                    <input class="form-control" autocomplete="off">
+                </FloatingLabel>
+            </div>
+            <div class="col">
+                <FloatingLabel Label="Имя" CustomClass="pb-2">
+                    <input class="form-control" autocomplete="off">
+                </FloatingLabel>
+            </div>
+            <div class="col">
+                <FloatingLabel Label="Отчество" CustomClass="pb-2">
+                    <input class="form-control" autocomplete="off">
+                </FloatingLabel>
+            </div>
+            <div class="col">
+                <FloatingLabel Label="Дата рождения" CustomClass="pb-2">
+                    <input type="date" class="form-control" autocomplete="off">
+                </FloatingLabel>
+            </div>
+            <div class="col">
+                <div class="dropdown w-100">
+                    <button class="btn btn-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" style="height:58px">
+                        Пол
+                        <br />
+                    </button>
+                    <ul class="dropdown-menu w-100">
+                        <li>
+                            <button class="dropdown-item" type="button">Мужчина</button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" type="button">Женщина</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-floating pb-2">
+                    <input class="form-control" autocomplete="off">
+                    <label>Полис ОМС</label>
+                </div>
+            </div>
+            <InsuranceCompanyDropdown />
+        </div>
+    </div>
+</div>

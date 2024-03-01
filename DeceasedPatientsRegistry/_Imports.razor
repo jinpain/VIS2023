@@ -1,0 +1,29 @@
+﻿@using System.Net.Http
+@using ForceRenderComponentLibrary
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using DeceasedPatientsRegistry
+@using DeceasedPatientsRegistry.Shared
+@using SharedComponents.Components
+@using DeceasedPatientsRegistry.Services.DataHandlers
+@using DeceasedPatientsRegistry.Data
+@using DeceasedPatientsRegistry.Services.DatabaseHandlers
+@using DeceasedPatientsRegistry.Services.DatabaseHandlers.Repositories
+@using DeceasedPatientsRegistry.Shared.ModalWindows
+@using DeceasedPatientsRegistry.Shared.Dropdowns
+@using DeceasedPatientsRegistry.Shared.ModalWindows.DictionariesModals
+@using DeceasedPatientsRegistry.Data.Filters
+@using DeceasedPatientsRegistry.Domain.Entities
+@using SharedExtensions
+@using DeceasedPatientsRegistry.Shared.ModalWindows.PrintModals
+@using SignalRHubLibrary
+@using static DeceasedPatientsRegistry.Domain.Enums
+@using static SharedComponents.Extensions.BootstrapColor
+
+@inject NotificationService NotificationService
+@inject ForceRenderComponentService ForceRenderComponentService

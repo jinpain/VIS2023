@@ -1,0 +1,342 @@
+﻿@using CustomAuthentication
+@using DeceasedPatientsRegistry.Shared.ModalWindows.PatientModalChild
+@using DeceasedPatientsRegistry.Shared.ModalWindows.MedicalEconomicExamination
+
+<div class="modal fade" id="patientModal" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">
+                    Форма заполнения умершего
+                    <button class="btn btn-sm btn-info text-white" @onclick="() => _medicalHistoryRouteMapManager.FilterAsync()" data-bs-toggle="modal" data-bs-target="#medicalHistoryRouteMapManager">
+                        <i class="bi bi-map-fill"></i>
+                        Маршрутная карта ИБ
+                    </button>
+                </h1>
+                <button class="btn btn-sm btn-secondary" @onclick="_saveStatus.Clear" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+            <div class="modal-body">
+                <div class="row row-cols-2">
+                    <div class="col">
+                        <div class="row row-cols-2">
+                            <div class="col">
+                                <span class="text-danger">@_warning</span>
+                                <FloatingLabel Label="Номер ИБ" CustomClass="pb-2">
+                                    <input class="form-control" @bind="Patient.MedicalHistoryNumber" @onkeyup="_saveStatus.MarkPatientChanged" @onblur="DuplicateCheck" />
+                                </FloatingLabel>
+                                <FloatingLabel Label="Фамилия" CustomClass="pb-2">
+                                    <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.Lastname" @onkeyup="_saveStatus.MarkPatientChanged" />
+                                </FloatingLabel>
+                                <FloatingLabel Label="Имя" CustomClass="pb-2">
+                                    <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.Firstname" @onkeyup="_saveStatus.MarkPatientChanged" />
+                                </FloatingLabel>
+                                <FloatingLabel Label="Отчество" CustomClass="pb-2">
+                                    <input class="form-control" oninput="capitalizeFirstLetter(this)" @bind="Patient.Surname" @onkeyup="_saveStatus.MarkPatientChanged" />
+                                </FloatingLabel>
+                                <FloatingLabel Label="Дата и время смерти" CustomClass="pb-2">
+                                    <input type="datetime-local" class="form-control" @bind="Patient.DateDeath" @oninput="_saveStatus.MarkPatientChanged" />
+                                </FloatingLabel>
+                            </div>
+                            <div class="col">
+                                <div class="pb-2">
+                                    <DepartmentsDropdown DataManager="_departmentManager" IsMain="true" Value="@Patient.MainDepartmentName" ModalUpdated="SetDepartmentStatus" SetDepartmentName="SetDepartmentName" />
+                                </div>
+                                <div class="pb-2">
+                                    <DepartmentsDropdown DataManager="_departmentManager" IsMain="false" Value="@Patient.DepartmentName" ModalUpdated="SetDepartmentStatus" SetDepartmentName="SetDepartmentName" />
+                                </div>
+                                <div class="pb-2">
+                                    <AutopsyDropdown Value="@Patient.AutopsyType.ToString()" SetAutopsyType="SetAutopsyType" />
+                                </div>
+                                @if (Patient.AutopsyType == AutopsyType.Нет)
+                                {
+                                    <div class="pb-2">
+                                        <OncologyDropdown Value="Patient.Oncology" SetOncologyStatus="SetOncologyStatus" />
+                                    </div>
+                                }
+                                <div class="pb-2">
+                                    <ExpertiseDropdown Value="Patient.Expertise" SetExpertiseStatus="SetExpertiseStatus" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col pb-2">
+                        <ReportCard DataManager="_staffManager" Report="Patient.Report" SaveButtonStatus="_saveStatus.SaveButtonStatus" ReportChanged="_saveStatus.MarkReportChanged" ModalUpdated="ForceRender" />
+                    </div>
+                    <div class="col">
+                        <ArchiveCard DataManager="_archiveManager" MedicalHistoryRouteMapDataManager="_medicalHistoryRouteMapManager" Value="@Patient.ArchiveName" Patient="Patient" PatientChanged="_saveStatus.MarkPatientChanged" ArchiveChanged="_saveStatus.MarkArchiveChanged" ModalUpdated="ForceRender" SetArchiveName="SetArchiveName" />
+                    </div>
+                    <div class="col">
+                        <KKMPCard Patient="Patient" MedicalHistoryRouteMapDataManager="_medicalHistoryRouteMapManager" PatientChanged="_saveStatus.MarkPatientChanged" KKMPChanged="_saveStatus.MarkKKMPChanged" />
+                    </div>
+                </div>
+                <div class="pt-2">
+                    <KILICard Patient="Patient" MedicalHistoryRouteMapDataManager="_medicalHistoryRouteMapManager" PatientChanged="_saveStatus.MarkPatientChanged" KILIChanged="_saveStatus.MarkKILIChanged" ConclusionKILIChanged="_saveStatus.MarkConclusionKILIChanged" />
+                </div>
+            </div>
+            <div class="modal-footer d-flex d-flex justify-content-between">
+                <button class="btn btn-sm btn-secondary" @onclick="ClearForm">
+                    <i class="bi bi-x-octagon-fill text-danger"></i>
+                    Очистить форму
+                </button>
+                @if (!_saveStatus.SaveButtonStatus)
+                {
+                    <h4 class="text-success fw-bold">
+                        <span class="bi bi-clipboard-check" />
+                        <span>Последние изменения сохранены</span>
+                    </h4>
+                }
+                else
+                {
+                    if (Patient.Id == Guid.Empty)
+                    {
+                        <button class="btn btn-sm btn-primary" @onclick="SavePatient">
+                            <i class="bi bi-person-plus-fill"></i>
+                            Добавить пациента
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-success" @onclick="SavePatient">
+                            <i class="bi bi-person-check-fill"></i>
+                            Сохранить внесенные изменения
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<DepartmentsDictionaryModal DataManager="_departmentManager" IsMain="_isMainDepartment" />
+<StaffDictionaryModal DataManager="_staffManager" />
+<ArchiveDictionaryModal DataManager="_archiveManager" />
+<MedicalHistoryRouteMapModal DataManager="_medicalHistoryRouteMapManager" />
+<ExpertiseModal />
+
+
+@code
+{
+    [CascadingParameter]
+    public AuthenticationState AuthenticationState { get; set; }
+    [Parameter]
+    public DataManager<Patient, PatientFilter> DataManager { get; set; }
+    [Parameter]
+    public Patient Patient { get; set; }
+    [Parameter]
+    public DataManager<Logs, LogsFilter> LogsManager { get; set; }
+    [Inject]
+    private DepartmentRepository _departmentRepository { get; set; }
+    [Inject]
+    private StaffRepository _staffRepository { get; set; }
+    [Inject]
+    private ReportRepository _reportRepository { get; set; }
+    [Inject]
+    private ArchiveRepository _archiveRepository { get; set; }
+    [Inject]
+    private NoteRepository _noteRepository { get; set; }
+    [Inject]
+    private MedicalHistoryRouteMapRepository _medicalHistoryRouteMapRepository { get; set; }
+    [Inject]
+    private ConclusionRepository _conclusionRepository { get; set; }
+    [Inject]
+    private PatientRepository _patientRepository { get; set; } 
+
+    private DataManager<Department, DepartmentFilter> _departmentManager;
+    private DataManager<Staff, StaffFilter> _staffManager;
+    private DataManager<Archive, ArchiveFilter> _archiveManager;
+    private DataManager<MedicalHistoryRouteMap, MedicalHistoryRouteMapFilter> _medicalHistoryRouteMapManager;
+
+    private SaveStatus _saveStatus = new();
+
+    private string _warning = "";
+
+    private string _componentName = "PatientModal";
+    private bool _isMainDepartment;
+
+    private async void DuplicateCheck()
+    {
+        if (Patient.Id != Guid.Empty)
+            return;
+        if(String.IsNullOrEmpty(Patient.MedicalHistoryNumber))
+        {
+            _warning = "";
+            return;
+        }
+        if(DataManager.GetCachedData().Where(x => x.IsDeleted == false).ToList().Exists(x => x.MedicalHistoryNumber == Patient.MedicalHistoryNumber))
+            _warning = "Пациент с таким №ИБ уже существует в списке!";
+        else
+        {
+            var tmp = await _patientRepository.GetPatientByMedicalHistoryNumber(Patient.MedicalHistoryNumber);
+            if (tmp != null)
+                _warning = "Пациент с таким №ИБ уже существует в списке!";
+            else
+                _warning = "";
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        //Регистрация компонента
+        RegisteredComponent _registeredComponent = new(_componentName,
+            ForceRenderComponentService,
+            ForceRender);
+
+        RegistrationDataManagers();
+    }
+
+    protected override void OnParametersSet()
+    {
+        _medicalHistoryRouteMapManager.SetFilter(new() { PatientId = Patient.Id });
+    }
+
+    private void ClearForm()
+    {
+        Patient = new();
+        _saveStatus.Clear();
+        _warning = "";
+    }
+
+    private async void SavePatient()
+    {
+        if (_saveStatus.ReportChanged)
+        {
+            Patient.Report = await _reportRepository.UpdateAsync(Patient.Report);
+            if (Patient.ReportId == null)
+            {
+                Patient.ReportId = Patient.Report.Id;
+                _saveStatus.MarkPatientChanged();
+            }
+        }
+
+        if (_saveStatus.ArchiveChanged)
+        {
+            Patient.NoteArchive = await _noteRepository.UpdateAsync(Patient.NoteArchive);
+            if (Patient.NoteArchiveId == null)
+            {
+                Patient.NoteArchiveId = Patient.NoteArchive.Id;
+                _saveStatus.MarkPatientChanged();
+            }
+        }
+
+        if (_saveStatus.KKMPChanged)
+        {
+            Patient.NoteKKMP = await _noteRepository.UpdateAsync(Patient.NoteKKMP);
+            if (Patient.NoteKKMPId == null)
+            {
+                Patient.NoteKKMPId = Patient.NoteKKMP.Id;
+                _saveStatus.MarkPatientChanged();
+            }
+        }
+
+        if (_saveStatus.KILIChanged)
+        {
+            Patient.NoteKILI = await _noteRepository.UpdateAsync(Patient.NoteKILI);
+            if (Patient.NoteKILIId == null)
+            {
+                Patient.NoteKILIId = Patient.NoteKILI.Id;
+                _saveStatus.MarkPatientChanged();
+            }
+        }
+
+        if (_saveStatus.ConclusionKILIChanged)
+        {
+            Patient.ConclusionKILI = await _conclusionRepository.UpdateAsync(Patient.ConclusionKILI);
+            if (Patient.ConclusionKILIId == null)
+            {
+                Patient.ConclusionKILIId = Patient.ConclusionKILI.Id;
+                _saveStatus.MarkPatientChanged();
+            }
+        }
+
+        if (_saveStatus.PatientChanged)
+        {
+            if (Patient.Id == Guid.Empty)
+            {
+                DataManager.InsertAsync(Patient);
+                LogsManager.InsertAsync(new Logs() { UserName = UserAuthorizationExtension.GetCurentUserFullName(AuthenticationState), MedicalHistoryNumber = Patient.MedicalHistoryNumber, ActionType = ActionType.Добавил, Timestamp = DateTime.Now });
+            }
+            else
+            {
+                DataManager.UpdateAsync(Patient);
+                LogsManager.InsertAsync(new Logs() { UserName = UserAuthorizationExtension.GetCurentUserFullName(AuthenticationState), MedicalHistoryNumber = Patient.MedicalHistoryNumber, ActionType = ActionType.Обновил, Timestamp = DateTime.Now });
+            }
+        }
+
+        _saveStatus.Clear();
+
+        ForceRender();
+    }
+
+    private void SetDepartmentName((bool status, string name) value)
+    {
+        if (value.status)
+            Patient.MainDepartmentName = value.name;
+        else
+            Patient.DepartmentName = value.name;
+
+        _saveStatus.MarkPatientChanged();
+    }
+
+    private void SetDepartmentStatus(bool status)
+    {
+        _isMainDepartment = status;
+    }
+
+    private void SetArchiveName(string name)
+    {
+        Patient.ArchiveName = name;
+        _saveStatus.MarkPatientChanged();
+    }
+
+    private void SetAutopsyType(AutopsyType autopsy)
+    {
+        Patient.AutopsyType = autopsy;
+        _saveStatus.MarkPatientChanged();
+    }
+
+    private void SetOncologyStatus(bool status)
+    {
+        Patient.Oncology = status;
+        _saveStatus.MarkPatientChanged();
+    }
+
+    private void SetExpertiseStatus(bool status)
+    {
+        Patient.Expertise = status;
+        _saveStatus.MarkPatientChanged();
+    }
+
+    private async void ForceRender() => await this.InvokeAsync(() => StateHasChanged());
+
+    private void RegistrationDataManagers() //Регистрация сервиса по работе с данным
+    {
+        _departmentManager = new DataManager<Department, DepartmentFilter>(_departmentRepository,
+            NotificationService,
+            new DepartmentFilter(),
+            "_departmentManager",
+            _componentName,
+            ForceRenderComponentService);
+
+        _staffManager = new DataManager<Staff, StaffFilter>(_staffRepository,
+            NotificationService,
+            new StaffFilter(),
+            "_staffManager",
+            _componentName,
+            ForceRenderComponentService);
+
+        _archiveManager = new DataManager<Archive, ArchiveFilter>(_archiveRepository,
+            NotificationService,
+            new ArchiveFilter(),
+            "_archiveManager",
+            _componentName,
+            ForceRenderComponentService);
+
+        _medicalHistoryRouteMapManager = new DataManager<MedicalHistoryRouteMap, MedicalHistoryRouteMapFilter>(_medicalHistoryRouteMapRepository,
+            NotificationService,
+            new MedicalHistoryRouteMapFilter(),
+            "_medicalHistoryRouteMapManager",
+            _componentName,
+            ForceRenderComponentService);
+    }
+}

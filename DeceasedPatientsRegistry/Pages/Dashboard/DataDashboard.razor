@@ -1,0 +1,95 @@
+﻿@using CustomAuthentication
+@implements IAsyncDisposable;
+
+<NavBar ServiceName="Реестр умерших пациентов" UserName="@(CustomAuthentication.UserAuthorizationExtension.GetCurentUserFullName(AuthenticationState))" Logout="Logout" />
+<div class="card">
+    <div class="card-header">
+        <SearchBar DataManager="_patientManager" EventCallback="Search" OpenPrintMainTable="ToggleState" />
+    </div>
+    <div class="card-body" style="padding:0">
+        <MainTable DataManager="_patientManager" LogsManager="_logsManager" SelectPatient="SetPatient" />
+    </div>
+</div>
+
+<PatientModal DataManager="_patientManager" LogsManager="_logsManager" Patient="_selectedPatient" />
+
+<LogsModal DataManager="_logsManager" SelectPatient="SetPatient" />
+
+<PrintCertificatePatientModal Patient="_selectedPatient" />
+
+<PrintMainTableModal DataManager="_patientManager" IsOpen="_printMainTableIsOpen" ClosePrintMainTable="ToggleState" />
+
+@code 
+{
+    [CascadingParameter]
+    public AuthenticationState AuthenticationState { get; set; }
+    [Inject]
+    private PatientRepository _patientRepository { get; set; }
+    [Inject]
+    private LogsRepository _logsRepository { get; set; }
+    [Inject]
+    private NavigationManager _navigation { get; set; }
+    [Inject]
+    private NotificationService _notificationService { get; set; }
+    [Inject]
+    private AuthenticationStateProvider _authenticationStateProvider { get; set; }
+
+    private string _componentName = "DataDashboard";
+
+    private DataManager<Patient, PatientFilter> _patientManager;
+
+    private DataManager<Logs, LogsFilter> _logsManager;
+
+    private Patient _selectedPatient = new();
+
+    private bool _printMainTableIsOpen = false;
+
+    protected async override Task OnInitializedAsync()
+    {
+        _notificationService.InitializeHubConnection(_navigation);
+        //Регистрация компонента
+        RegisteredComponent _registeredComponent = new(_componentName,
+            ForceRenderComponentService,
+            ForceRender);
+
+        //Регистрация сервиса по работе с данным
+        _patientManager = new DataManager<Patient, PatientFilter>(_patientRepository,
+            NotificationService,
+            new PatientFilter(),
+            "_patientManager",
+            _componentName,
+            ForceRenderComponentService);
+
+        _logsManager = new DataManager<Logs, LogsFilter>(_logsRepository,
+            NotificationService,
+            new LogsFilter(),
+            "_logsManager",
+            _componentName,
+            ForceRenderComponentService);
+
+        await Task.Delay(5000);
+        await _notificationService.StartConnectionAsync();
+    }
+
+    private async void Search()
+    {
+        await _patientManager.FilterAsync();
+        ForceRender();
+    }
+
+    private void SetPatient(Patient patient) => _selectedPatient = patient;
+
+    private void ToggleState(bool state) => _printMainTableIsOpen = state;
+
+    private async void ForceRender() => await this.InvokeAsync(() => StateHasChanged());
+
+    private async void Logout() => await DisposeAsync();
+
+    public async ValueTask DisposeAsync()
+    {
+        await _notificationService.DisposeAsync();
+        ForceRenderComponentService.RemoveAllObserver();
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)_authenticationStateProvider;
+        await customAuthStateProvider.UpdateAuthenticationState(null);
+    }
+}

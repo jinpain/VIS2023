@@ -1,0 +1,96 @@
+﻿<div class="row">
+    <div class="col-auto">
+        <div class="btn-group w-100 h-100" role="group">
+            <div class="btn-group" role="group">
+                <button class="btn btn-success bi bi-file-earmark-ruled-fill"  data-bs-toggle="dropdown" />
+                <ul class="dropdown-menu">
+                    <li>
+                        <button class="dropdown-item" @onclick="() => OpenPrintMainTable.InvokeAsync(true)" data-bs-toggle="modal" data-bs-target="#printMainTableModal">
+                            Сформировать отчет по умершим пациентам
+                        </button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item bg-warning" >
+                            Сформировать отчет по летальной экспертизе
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <button class="btn btn-info bi bi-journal-bookmark-fill" data-bs-toggle="modal" data-bs-target="#logsModal" />
+        </div>        
+    </div>
+    <div class="col">
+        <FloatingLabel Label="Тип таблицы">
+            <select @onchange="@(e => SwitchTableType(e.Value))"
+                    class="form-select">
+                <option selected value="false">Отчетная</option>
+                <option value="true">Корзина</option>
+            </select>
+            <label>Тип таблицы</label>
+        </FloatingLabel>
+    </div>
+    <div class="col">
+        <FloatingLabel Label="Умершие с">
+            <input type="date" class="form-control" @bind="_patientFilter.DateDeathFrom" @onkeyup="@(e => Search(_patientFilter, e.Key))" />
+        </FloatingLabel>
+    </div>
+    <div class="col">
+        <FloatingLabel Label="Умершие по">
+            <input type="date" class="form-control" @bind="_patientFilter.DateDeathTo" @onkeyup="@(e => Search(_patientFilter, e.Key))" />
+        </FloatingLabel>
+    </div>
+    <div class="col">
+        <FloatingLabel Label="Номер мед.карты">
+            <input type="text" class="form-control" @bind="_patientFilter.MedicalHistoryNumber" @onkeyup="@(e => Search(_patientFilter, e.Key))" />
+        </FloatingLabel>
+    </div>
+    <div class="col">
+        <FloatingLabel Label="Фамилия">
+            <input type="text" class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_patientFilter.Lastname" @onkeyup="@(e => Search(_patientFilter, e.Key))" />
+        </FloatingLabel>
+    </div>
+    <div class="col">
+        <FloatingLabel Label="Имя">
+            <input type="text" class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_patientFilter.Firstname" @onkeyup="@(e => Search(_patientFilter, e.Key))" />
+        </FloatingLabel>
+    </div>
+    <div class="col">
+        <FloatingLabel Label="Отчество">
+            <input type="text" class="form-control" oninput="capitalizeFirstLetter(this)" @bind="_patientFilter.Surname" @onkeyup="@(e => Search(_patientFilter, e.Key))" />
+        </FloatingLabel>
+    </div>
+    <div class="col">
+        <div class="btn-group w-100 h-100" role="group">
+            <button class="btn btn-secondary bi bi-search" @onclick="() => Search(_patientFilter)" />
+            <button class="btn btn-danger bi bi-x-square-fill" @onclick="() => Search(_patientFilter = new())" />
+        </div>
+    </div>
+</div>
+
+
+@code
+{
+    [Parameter]
+    public DataManager<Patient, PatientFilter> DataManager { get; set; }
+    [Parameter]
+    public EventCallback EventCallback { get; set; }
+    [Parameter]
+    public EventCallback<bool> OpenPrintMainTable { get; set; }
+
+    private PatientFilter _patientFilter = new();
+
+    private void SwitchTableType(object type)
+    {
+        _patientFilter.IsDeleted = Convert.ToBoolean(type);
+        Search(_patientFilter);
+    }
+
+    private async void Search(PatientFilter filter, string key = "Enter")
+    {
+        if (key == "Enter")
+        {
+            DataManager.SetFilter(filter);
+            await EventCallback.InvokeAsync();
+        }
+    }
+}

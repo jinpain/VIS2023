@@ -1,0 +1,23 @@
+﻿<div class="dropdown">
+    <button class="btn btn-warning dropdown-toggle w-100" data-bs-toggle="dropdown" style="height:58px">
+        <span>Экспертиза</span>
+        <br />
+        @(Value ? "Да" : "Нет")
+    </button>
+    <ul class="dropdown-menu w-100">
+        <li>
+            <button class="dropdown-item" @onclick="() => SetExpertiseStatus.InvokeAsync(false)">Нет</button>
+        </li>
+        <li>
+            <button class="dropdown-item" @onclick="() => SetExpertiseStatus.InvokeAsync(true)">Да</button>
+        </li>
+    </ul>
+</div>
+
+@code
+{
+    [Parameter]
+    public bool Value { get; set; }
+    [Parameter]
+    public EventCallback<bool> SetExpertiseStatus { get; set; }
+}
