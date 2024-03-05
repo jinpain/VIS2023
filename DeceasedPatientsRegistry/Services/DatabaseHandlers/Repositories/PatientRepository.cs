@@ -31,10 +31,12 @@ namespace DeceasedPatientsRegistry.Services.DatabaseHandlers.Repositories
             return await patients.OrderByDescending(x => x.DateDeath).ToListAsync();
         }
 
-        public async Task<Patient> GetPatientByMedicalHistoryNumber(string medicalHistoryNumber)
+        public async Task<Patient> GetPatientByMedicalHistoryNumber(string medicalHistoryNumber, int? year = null)
         {
             using ApplicationContext context = _context.CreateDbContext();
-            return await context.Patients.FirstOrDefaultAsync(x => x.MedicalHistoryNumber == medicalHistoryNumber);
+            if(year == null)
+                return await context.Patients.FirstOrDefaultAsync(x => x.MedicalHistoryNumber == medicalHistoryNumber);
+            return await context.Patients.FirstOrDefaultAsync(x => x.DateDeath.Value.Year == year && x.MedicalHistoryNumber == medicalHistoryNumber);
         }
     }
 }

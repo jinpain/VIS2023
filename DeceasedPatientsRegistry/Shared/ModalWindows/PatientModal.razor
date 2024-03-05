@@ -162,11 +162,11 @@
             _warning = "";
             return;
         }
-        if(DataManager.GetCachedData().Where(x => x.IsDeleted == false).ToList().Exists(x => x.MedicalHistoryNumber == Patient.MedicalHistoryNumber))
+        if(DataManager.GetCachedData().Where(x => x.IsDeleted == false).ToList().Exists(x => x.MedicalHistoryNumber == Patient.MedicalHistoryNumber && x.DateDeath?.Year == DateTime.Now.Year))
             _warning = "Пациент с таким №ИБ уже существует в списке!";
         else
         {
-            var tmp = await _patientRepository.GetPatientByMedicalHistoryNumber(Patient.MedicalHistoryNumber);
+            var tmp = await _patientRepository.GetPatientByMedicalHistoryNumber(Patient.MedicalHistoryNumber, DateTime.Now.Year);
             if (tmp != null)
                 _warning = "Пациент с таким №ИБ уже существует в списке!";
             else
