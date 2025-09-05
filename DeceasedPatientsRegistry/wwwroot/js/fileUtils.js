@@ -31,6 +31,18 @@ function htmlTableToExcel() {
     XLSX.writeFile(wb, 'ExportedFile.xlsx');
 }
 
+function htmlTableToExcelOnlyReport() {
+    const data = document.getElementById('tblToExclOnlyReport');
+    const ws = XLSX.utils.table_to_sheet(data);
+
+    formatColumnDate(ws, 7, 'dd.mm.yyyy hh:mm');
+    formatColumnDate(ws, 9, 'dd.mm.yyyy');
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.writeFile(wb, 'ExportedFile.xlsx');
+}
+
 function formatColumnDate(ws, column, format) {
     var range = XLSX.utils.decode_range(ws['!ref']);
     for (var i = range.s.r + 1; i <= range.e.r; i++) {

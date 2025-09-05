@@ -39,8 +39,6 @@ namespace DeceasedPatientsRegistry.Domain.Entities
         //Дата возврата ИБ в архив на хранение
         public DateTime? DateArchiving { get; set; } = null;
         public bool IsDeleted { get; set; } = false;
-
-        [NotMapped]
         public Report Report { get; set; } = new();
         [NotMapped]
         public Note NoteKKMP { get; set; } = new();

@@ -12,7 +12,7 @@ namespace DeceasedPatientsRegistry.Services.DatabaseHandlers.Repositories
         public async override Task<List<Patient>> FilterAsync(PatientFilter filter)
         {
             using ApplicationContext? context = _context.CreateDbContext();
-            IQueryable<Patient> patients = context.Patients.Where(x => x.IsDeleted == filter.IsDeleted);
+            IQueryable<Patient> patients = context.Patients.Where(x => x.IsDeleted == filter.IsDeleted).Include(x => x.Report);
             if (filter != null)
             {
                 if (filter.DateDeathFrom != null)

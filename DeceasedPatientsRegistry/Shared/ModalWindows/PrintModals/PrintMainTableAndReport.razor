@@ -1,0 +1,133 @@
+﻿<div class="modal fade" id="printMainTableAndModal" data-bs-keyboard="false">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Предварительный просмотр документа</h1>
+                    <div class="px-2">
+                        <button class="btn btn-sm btn-success bi bi-printer-fill" onclick="callPrint('print-table-only-report')" />
+                    </div>
+                    <button onclick="htmlTableToExcelOnlyReport()" class="btn btn-sm btn-primary bi bi-file-earmark-arrow-down-fill" />
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-secondary" @onclick="() => ClosePrintMainTable.InvokeAsync(false)" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+            <div class="px-3 pt-1">
+                <div class="form-check">
+                    <input class="form-check-input" @bind="_onlyReport" type="checkbox" value="" id="onlyReport">
+                    <label class="form-check-label fw-bold" for="onlyReport">
+                        ТОЛЬКО С ЗАПОЛНЕННЫМ ОТЧЕТОМ О ПРОВЕРКЕ
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-body" id="print-table-only-report">
+                @if (IsOpen)
+                {
+                    <table class="table table-sm table-bordered border-black" id="tblToExclOnlyReport" style="font-size:x-small">
+                        <thead>
+                            <tr>
+                                <th>Вскрытие</th>
+                                <th>Фамилия</th>
+                                <th>Имя</th>
+                                <th>Отчество</th>
+                                <th>№ ИБ</th>
+                                <th>Отделение</th>
+                                <th>Отделение по разноске</th>
+                                <th>Дата смерти</th>
+                                <th>ОНКО</th>
+                                <th>Дата проверки</th>
+                                <th>Проверяющий</th>
+                                <th>Отчет о проверке</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in DataManager.GetCachedData())
+                            {
+                                @if((_onlyReport && !String.IsNullOrEmpty(item.Report.Note)) || !_onlyReport)
+                                {
+                                    <tr>
+                                        <td>
+                                            @item.AutopsyType
+                                        </td>
+                                        <td>
+                                            @item.Lastname
+                                        </td>
+                                        <td>
+                                            @item.Firstname
+                                        </td>
+                                        <td>
+                                            @item.Surname
+                                        </td>
+                                        <td>
+                                            @item.MedicalHistoryNumber
+                                        </td>
+                                        <td>
+                                            @item.MainDepartmentName
+                                        </td>
+                                        <td>
+                                            @item.DepartmentName
+                                        </td>
+                                        <td>
+                                            @DateTimeExtension.ToDateTimeFormatStringOrEmpty(item.DateDeath, "dd.MM.yyyy HH:mm")
+                                        </td>
+                                        <td>
+                                            @(item.Oncology ? "Да" : "Нет")
+                                        </td>
+                                        <td>
+                                            @DateTimeExtension.ToDateTimeFormatStringOrEmpty(item.Report.DateTime, "dd.MM.yyyy HH:mm")
+                                        </td>
+                                        <td>
+                                            @item.Report.Inspector
+                                        </td>
+                                        <td>
+                                            @item.Report.Note
+                                        </td>
+                                    </tr>
+                                }
+                       
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code 
+{
+    [Parameter]
+    public bool IsOpen { get; set; } = false;
+    [Parameter]
+    public DataManager<Patient,PatientFilter> DataManager { get; set; }
+    [Parameter]
+    public EventCallback<bool> ClosePrintMainTable { get; set; }
+
+    [Inject]
+    private HeadersFilterTable _headersFilterTable { get; set; }
+
+    private bool _onlyReport = false;
+
+    private List<Patient> Filter()
+    {
+        IQueryable<Patient> patients = DataManager.GetCachedData().Where(x => x.IsDeleted == DataManager.Filter.IsDeleted).AsQueryable();
+        if (DataManager.Filter != null)
+        {
+            if (DataManager.Filter.DateDeathFrom != null)
+                patients = patients.Where(x => x.DateDeath >= DataManager.Filter.DateDeathFrom);
+            if (DataManager.Filter.DateDeathTo != null)
+                patients = patients.Where(x => x.DateDeath <= DataManager.Filter.DateDeathTo);
+            if (!string.IsNullOrEmpty(DataManager.Filter.Lastname))
+                patients = patients.Where(x => x.Lastname.Contains(DataManager.Filter.Lastname));
+            if (!string.IsNullOrEmpty(DataManager.Filter.Firstname))
+                patients = patients.Where(x => x.Firstname.Contains(DataManager.Filter.Firstname));
+            if (!string.IsNullOrEmpty(DataManager.Filter.Surname))
+                patients = patients.Where(x => x.Surname.Contains(DataManager.Filter.Surname));
+            if (!string.IsNullOrEmpty(DataManager.Filter.MedicalHistoryNumber))
+                patients = patients.Where(x => x.MedicalHistoryNumber == DataManager.Filter.MedicalHistoryNumber);
+        }
+        return _headersFilterTable.Filter(patients.ToList());
+    }
+}

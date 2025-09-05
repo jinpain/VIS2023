@@ -10,8 +10,8 @@
                         </button>
                     </li>
                     <li>
-                        <button class="dropdown-item bg-warning" >
-                            Сформировать отчет по летальной экспертизе
+                        <button class="dropdown-item" @onclick="() => OpenPrintMainTable.InvokeAsync(true)" data-bs-toggle="modal" data-bs-target="#printMainTableAndModal">
+                            Сформировать отчет с проверкой
                         </button>
                     </li>
                 </ul>
